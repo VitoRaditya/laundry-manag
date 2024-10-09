@@ -1,0 +1,81 @@
+CREATE DATABASE laundry;
+USE laundry;
+
+CREATE TABLE tb_member (
+    id INT(11) AUTO_INCREMENT PRIMARY KEY,
+    nama VARCHAR(100),
+    alamat TEXT,
+    jenis_kelamin ENUM('L', 'P'),
+    tlp VARCHAR(15)
+);
+
+CREATE TABLE tb_outlet (
+    id INT(11) AUTO_INCREMENT PRIMARY KEY,
+    nama VARCHAR(100),
+    alamat TEXT,
+    tlp VARCHAR(15)
+);
+
+CREATE TABLE tb_paket (
+    id INT(11) AUTO_INCREMENT PRIMARY KEY,
+    id_outlet INT(11),
+    jenis ENUM('kiloan', 'selimut', 'bed_cover', 'kaos', 'lain'),
+    nama_paket VARCHAR(100),
+    harga INT(11),
+    FOREIGN KEY (id_outlet) REFERENCES tb_outlet(id) ON DELETE CASCADE
+);
+
+CREATE TABLE tb_user (
+    id INT(11) AUTO_INCREMENT PRIMARY KEY,
+    nama VARCHAR(100),
+    username VARCHAR(30),
+    password TEXT,
+    id_outlet INT(11),
+    role ENUM('admin', 'kasir', 'owner'),
+    FOREIGN KEY (id_outlet) REFERENCES tb_outlet(id) ON DELETE CASCADE
+);
+
+CREATE TABLE tb_transaksi (
+    id INT(11) AUTO_INCREMENT PRIMARY KEY,
+    id_outlet INT(11),
+    kode_invoice VARCHAR(100),
+    id_member INT(11),
+    tgl DATETIME,
+    batas_waktu DATETIME,
+    tgl_bayar DATETIME,
+    biaya_tambahan INT(11),
+    diskon DOUBLE,
+    pajak INT(11),
+    status ENUM('baru', 'proses', 'selesai', 'diambil'),
+    dibayar ENUM('dibayar', 'belum_dibayar'),
+    id_user INT(11),
+    FOREIGN KEY (id_outlet) REFERENCES tb_outlet(id),
+    FOREIGN KEY (id_member) REFERENCES tb_member(id),
+    FOREIGN KEY (id_user) REFERENCES tb_user(id)
+);
+
+CREATE TABLE tb_detail_transaksi (
+    id INT(11) AUTO_INCREMENT PRIMARY KEY,
+    id_transaksi INT(11),
+    id_paket INT(11),
+    qty DOUBLE,
+    keterangan TEXT,
+    FOREIGN KEY (id_transaksi) REFERENCES tb_transaksi(id),
+    FOREIGN KEY (id_paket) REFERENCES tb_paket(id)
+);
+
+
+ALTER TABLE tb_transaksi
+ADD COLUMN total_harga DOUBLE AFTER dibayar;
+
+ALTER TABLE tb_detail_transaksi
+ADD CONSTRAINT fk_id_transaksi
+FOREIGN KEY (id_transaksi) REFERENCES tb_transaksi(id)
+ON DELETE CASCADE;
+
+ALTER TABLE tb_transaksi ADD COLUMN harga_paket INT NOT NULL DEFAULT 0;
+
+ALTER TABLE tb_detail_transaksi DROP COLUMN keterangan;
+
+
+
